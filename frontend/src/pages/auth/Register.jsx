@@ -1,42 +1,47 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../../services/authService";
 
 function Register() {
-
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    phone: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(formData);
-
-    navigate("/login");
+    setError("");
+    setLoading(true);
+    try {
+      await registerUser(formData);
+      navigate("/login");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-[80vh] flex justify-center items-center">
-
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-lg p-8 rounded-xl w-full max-w-md"
       >
+        <h1 className="text-3xl font-bold text-center">Create Account</h1>
 
-        <h1 className="text-3xl font-bold text-center">
-          Create Account
-        </h1>
+        {error && (
+          <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+        )}
 
         <input
           name="name"
@@ -56,6 +61,13 @@ function Register() {
         />
 
         <input
+          name="phone"
+          placeholder="Phone (optional)"
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg mt-4"
+        />
+
+        <input
           name="password"
           type="password"
           placeholder="Password"
@@ -66,13 +78,19 @@ function Register() {
 
         <button
           type="submit"
-          className="w-full bg-orange-600 text-white py-3 rounded-lg mt-6"
+          disabled={loading}
+          className="w-full bg-orange-600 text-white py-3 rounded-lg mt-6 disabled:opacity-60"
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
 
+        <p className="text-center mt-4">
+          Already have an account?{" "}
+          <Link to="/login" className="text-orange-600">
+            Login
+          </Link>
+        </p>
       </form>
-
     </div>
   );
 }

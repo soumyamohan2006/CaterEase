@@ -17,7 +17,7 @@ function CateringPackageCard({ packageData }) {
       </p>
 
       <p className="text-orange-600 font-bold text-lg mt-3">
-        ${packageData.price}
+        ₹{packageData.pricePerPerson}/person
       </p>
 
       <Link
