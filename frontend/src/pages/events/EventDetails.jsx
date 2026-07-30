@@ -90,7 +90,7 @@ function EventDetails() {
             </div>
 
             <Link
-              to="/catering"
+              to={`/catering`}
               className="flex items-center justify-center gap-2 w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold transition"
             >
               View Packages <ArrowRight size={16} />
