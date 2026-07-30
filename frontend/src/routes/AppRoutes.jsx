@@ -19,6 +19,7 @@ import MenuDetails from "../pages/catering/MenuDetails";
 
 import BookEvent from "../pages/booking/BookEvent";
 import MyBookings from "../pages/booking/MyBookings";
+import BookingDetails from "../pages/booking/BookingDetails";
 
 import CustomerDashboard from "../pages/customer/CustomerDashboard";
 
@@ -46,6 +47,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path="/book-event/:id" element={<BookEvent />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/booking/:id" element={<BookingDetails />} />
           <Route path="/dashboard" element={<CustomerDashboard />} />
         </Route>
       </Route>
