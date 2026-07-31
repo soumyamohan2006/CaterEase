@@ -19,7 +19,7 @@ function Login() {
     try {
       const data = await loginUser(email, password);
       login(data.user, data.token);
-      navigate("/dashboard");
+      navigate(data.user.role === "admin" ? "/admin" : "/");
     } catch (err) {
       setError(err.message);
     } finally {

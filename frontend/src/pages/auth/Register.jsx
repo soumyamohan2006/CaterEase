@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../../services/authService";
+import { useAuth } from "../../hooks/useAuth";
 
 function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,8 +17,9 @@ function Register() {
     setError("");
     setLoading(true);
     try {
-      await registerUser(formData.name, formData.email, formData.password);
-      navigate("/login");
+      const data = await registerUser(formData.name, formData.email, formData.password);
+      login(data.user, data.token);
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
