@@ -1,41 +1,36 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Users, Phone, Mail, User } from "lucide-react";
+import { ArrowLeft, CalendarDays, Users } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { createBooking } from "../../services/bookingService";
 
 function BookEvent() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", date: "", guests: "", notes: "" });
-  const [submitted, setSubmitted] = useState(false);
+  const { token } = useAuth();
+
+  const [form, setForm] = useState({ eventDate: "", numberOfGuests: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setLoading(true);
+    try {
+      await createBooking(
+        { event: id, eventDate: form.eventDate, numberOfGuests: Number(form.numberOfGuests) },
+        token
+      );
+      navigate("/my-bookings");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CalendarDays size={28} className="text-orange-400" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Booking Confirmed!</h2>
-          <p className="text-gray-500 mt-2 text-sm">We've received your booking request. Our team will contact you shortly to confirm the details.</p>
-          <div className="mt-6 space-y-3">
-            <Link to="/my-bookings" className="block w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold transition text-sm">
-              View My Bookings
-            </Link>
-            <Link to="/events" className="block w-full border border-gray-200 text-gray-600 hover:bg-gray-50 py-3 rounded-xl font-semibold transition text-sm">
-              Back to Events
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -53,41 +48,30 @@ function BookEvent() {
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Fill in your details</h2>
+
+          {error && <p className="mb-5 text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-lg">{error}</p>}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-5">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5"><User size={14} /> Full Name</label>
-                <input name="name" required value={form.name} onChange={handleChange} placeholder="Your full name"
+                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+                  <CalendarDays size={14} /> Event Date
+                </label>
+                <input name="eventDate" type="date" required value={form.eventDate} onChange={handleChange}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5"><Mail size={14} /> Email</label>
-                <input name="email" type="email" required value={form.email} onChange={handleChange} placeholder="your@email.com"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5"><Phone size={14} /> Phone</label>
-                <input name="phone" required value={form.phone} onChange={handleChange} placeholder="+91 00000 00000"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5"><CalendarDays size={14} /> Event Date</label>
-                <input name="date" type="date" required value={form.date} onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5"><Users size={14} /> Number of Guests</label>
-                <input name="guests" type="number" min="1" required value={form.guests} onChange={handleChange} placeholder="e.g. 100"
+                <label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+                  <Users size={14} /> Number of Guests
+                </label>
+                <input name="numberOfGuests" type="number" min="1" required value={form.numberOfGuests} onChange={handleChange} placeholder="e.g. 100"
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1.5 block">Special Requests (optional)</label>
-              <textarea name="notes" rows={3} value={form.notes} onChange={handleChange} placeholder="Any special requirements or notes..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
-            </div>
-            <button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold transition text-sm">
-              Confirm Booking
+
+            <button type="submit" disabled={loading}
+              className="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold transition text-sm disabled:opacity-60">
+              {loading ? "Confirming..." : "Confirm Booking"}
             </button>
           </form>
         </div>

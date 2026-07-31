@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import EventCard from "../../components/event/EventCard";
-
-const allEvents = [
-  { _id: "1", name: "Wedding Events", description: "Complete wedding event management with premium catering and decor.", location: "Kerala" },
-  { _id: "2", name: "Birthday Parties", description: "Make your birthday celebrations special with custom packages.", location: "Kochi" },
-  { _id: "3", name: "Corporate Events", description: "Professional corporate event planning and catering services.", location: "Thrissur" },
-  { _id: "4", name: "Anniversary", description: "Elegant anniversary celebrations tailored to your love story.", location: "Kerala" },
-  { _id: "5", name: "Festivals", description: "Festive celebrations with traditional cuisine and entertainment.", location: "Kochi" },
-  { _id: "6", name: "Baby Showers", description: "Welcome your little one in style with our curated packages.", location: "Thrissur" },
-];
+import { getEvents } from "../../services/eventService";
 
 function Events() {
+  const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
-  const filtered = allEvents.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getEvents()
+      .then(setEvents)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = events.filter((e) =>
+    e.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div>
@@ -39,12 +44,16 @@ function Events() {
             />
           </div>
 
-          {filtered.length ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {filtered.map((e) => <EventCard key={e._id} event={e} />)}
-            </div>
-          ) : (
-            <div className="text-center py-16 text-gray-400">No events found.</div>
+          {loading && <div className="text-center py-16 text-gray-400">Loading events...</div>}
+          {error && <div className="text-center py-16 text-red-400">{error}</div>}
+          {!loading && !error && (
+            filtered.length ? (
+              <div className="grid md:grid-cols-3 gap-6">
+                {filtered.map((e) => <EventCard key={e._id} event={e} />)}
+              </div>
+            ) : (
+              <div className="text-center py-16 text-gray-400">No events found.</div>
+            )
           )}
         </div>
       </section>

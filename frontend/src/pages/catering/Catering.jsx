@@ -1,15 +1,19 @@
+import { useState, useEffect } from "react";
 import CateringPackageCard from "../../components/catering/CateringPackageCard";
-
-const packages = [
-  { _id: "1", name: "Wedding Premium", description: "Complete premium wedding catering with multi-course meals.", price: 2500 },
-  { _id: "2", name: "Birthday Package", description: "Perfect for birthday events with custom cake and buffet.", price: 500 },
-  { _id: "3", name: "Corporate Package", description: "Professional corporate catering for meetings and conferences.", price: 800 },
-  { _id: "4", name: "Silver Celebration", description: "Elegant catering for special milestones and anniversaries.", price: 1200 },
-  { _id: "5", name: "Festival Feast", description: "Traditional festival catering with authentic regional cuisine.", price: 600 },
-  { _id: "6", name: "Gold Premium", description: "Our most luxurious package with live cooking stations.", price: 3500 },
-];
+import { getCatering } from "../../services/cateringService";
 
 function Catering() {
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getCatering()
+      .then(setPackages)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       <section className="relative h-56 flex items-center justify-center overflow-hidden">
@@ -23,9 +27,17 @@ function Catering() {
 
       <section className="py-12 bg-gray-50 min-h-screen">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6">
-            {packages.map((p) => <CateringPackageCard key={p._id} packageData={p} />)}
-          </div>
+          {loading && <div className="text-center py-16 text-gray-400">Loading packages...</div>}
+          {error && <div className="text-center py-16 text-red-400">{error}</div>}
+          {!loading && !error && (
+            packages.length ? (
+              <div className="grid md:grid-cols-3 gap-6">
+                {packages.map((p) => <CateringPackageCard key={p._id} packageData={p} />)}
+              </div>
+            ) : (
+              <div className="text-center py-16 text-gray-400">No packages available.</div>
+            )
+          )}
         </div>
       </section>
     </div>
