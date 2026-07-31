@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin, CheckCircle } from "lucide-react";
+import { apiRequest } from "../../services/api";
 
 const info = [
   { icon: Mail, label: "Email", value: "hello@caterease.com" },
@@ -10,10 +11,24 @@ const info = [
 function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setError("");
+    setLoading(true);
+    try {
+      await apiRequest("/contact", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      setSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,6 +77,7 @@ function Contact() {
               <>
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && <p className="text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-lg">{error}</p>}
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1.5">Full Name</label>
@@ -84,8 +100,8 @@ function Contact() {
                     <textarea rows={5} placeholder="Tell us about your event..." value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                       className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" required />
                   </div>
-                  <button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm transition">
-                    Send Message
+                  <button type="submit" disabled={loading} className="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-60">
+                    {loading ? "Sending..." : "Send Message"}
                   </button>
                 </form>
               </>

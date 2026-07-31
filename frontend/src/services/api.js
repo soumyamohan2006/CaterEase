@@ -5,14 +5,15 @@ export async function apiRequest(
   endpoint,
   options = {}
 ) {
+  const { headers, ...rest } = options;
   const response = await fetch(
     `${API_URL}${endpoint}`,
     {
+      ...rest,
       headers: {
         "Content-Type": "application/json",
-        ...options.headers,
+        ...headers,
       },
-      ...options,
     }
   );
 
