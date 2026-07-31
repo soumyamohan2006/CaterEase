@@ -6,6 +6,8 @@ const {
   getAllUsers,
 } = require("../controllers/adminController");
 
+const { updateBookingStatus } = require("../controllers/bookingController");
+
 const protect = require("../middleware/authMiddleware");
 const adminOnly = require("../middleware/adminMiddleware");
 
@@ -16,5 +18,6 @@ router.use(protect, adminOnly);
 router.get("/dashboard", getDashboardStats);
 router.get("/users", getAllUsers);
 router.get("/bookings", getAllBookings);
+router.patch("/bookings/:id/status", updateBookingStatus);
 
 module.exports = router;

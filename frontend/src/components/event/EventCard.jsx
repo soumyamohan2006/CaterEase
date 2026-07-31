@@ -1,19 +1,10 @@
 import { Link } from "react-router-dom";
 import { MapPin, ArrowRight } from "lucide-react";
 
-const eventImages = {
-  "1": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80",
-  "2": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&q=80",
-  "3": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&q=80",
-  "4": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
-  "5": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
-  "6": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_5ThS1HnjxTwSsHIj7KdbIhYNsXF0Sdom6Yj2EWSzsQ&s=10",
-};
-
 const fallback = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80";
 
 function EventCard({ event }) {
-  const img = eventImages[event._id] || fallback;
+  const img = event.image || fallback;
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-shadow">

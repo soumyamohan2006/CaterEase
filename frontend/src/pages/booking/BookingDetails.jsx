@@ -1,33 +1,42 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, Users, Phone, Mail, User } from "lucide-react";
-
-const mockBookings = [
-  { _id: "b1", event: "Wedding Events", date: "2025-08-15", guests: 200, location: "Kerala", status: "Confirmed", name: "Arjun Menon", email: "arjun@example.com", phone: "+91 98765 43210", notes: "Please arrange floral decorations." },
-  { _id: "b2", event: "Corporate Events", date: "2025-07-20", guests: 80, location: "Thrissur", status: "Pending", name: "Priya Nair", email: "priya@example.com", phone: "+91 91234 56789", notes: "" },
-  { _id: "b3", event: "Birthday Parties", date: "2025-06-10", guests: 50, location: "Kochi", status: "Completed", name: "Rahul Das", email: "rahul@example.com", phone: "+91 99887 76655", notes: "Custom chocolate cake required." },
-];
+import { useAuth } from "../../hooks/useAuth";
+import { getBookingById } from "../../services/bookingService";
 
 const statusStyles = {
-  Confirmed: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Completed: "bg-gray-100 text-gray-500",
-  Cancelled: "bg-red-100 text-red-500",
+  pending: "bg-yellow-100 text-yellow-700",
+  confirmed: "bg-green-100 text-green-700",
+  completed: "bg-gray-100 text-gray-500",
+  cancelled: "bg-red-100 text-red-500",
 };
 
 function BookingDetails() {
   const { id } = useParams();
-  const booking = mockBookings.find((b) => b._id === id);
+  const { token } = useAuth();
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!booking) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-400">
-        <p className="text-xl font-semibold">Booking not found.</p>
-        <Link to="/my-bookings" className="mt-4 text-orange-400 font-semibold flex items-center gap-1.5 hover:gap-3 transition-all">
-          <ArrowLeft size={16} /> Back to My Bookings
-        </Link>
-      </div>
-    );
-  }
+  useEffect(() => {
+    getBookingById(id, token)
+      .then(setBooking)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id, token]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>;
+  if (error || !booking) return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-gray-400">
+      <p className="text-xl font-semibold">{error || "Booking not found."}</p>
+      <Link to="/my-bookings" className="mt-4 text-orange-400 font-semibold flex items-center gap-1.5 hover:gap-3 transition-all">
+        <ArrowLeft size={16} /> Back to My Bookings
+      </Link>
+    </div>
+  );
+
+  const u = booking.user || {};
+  const ev = booking.event || {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,8 +48,10 @@ function BookingDetails() {
             <ArrowLeft size={15} /> Back to My Bookings
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold text-white">{booking.event}</h1>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyles[booking.status]}`}>{booking.status}</span>
+            <h1 className="text-3xl font-extrabold text-white">{ev.name || "Booking"}</h1>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${statusStyles[booking.status] || "bg-gray-100 text-gray-500"}`}>
+              {booking.status}
+            </span>
           </div>
         </div>
       </div>
@@ -50,9 +61,10 @@ function BookingDetails() {
           <h2 className="text-lg font-bold text-gray-900 mb-5">Booking Information</h2>
           <div className="grid sm:grid-cols-2 gap-5 text-sm">
             {[
-              { icon: CalendarDays, label: "Event Date", value: booking.date },
-              { icon: MapPin, label: "Location", value: booking.location },
-              { icon: Users, label: "Guests", value: `${booking.guests} guests` },
+              { icon: CalendarDays, label: "Event Date", value: booking.eventDate?.slice(0, 10) },
+              { icon: MapPin, label: "Location", value: ev.location || "—" },
+              { icon: Users, label: "Guests", value: `${booking.numberOfGuests} guests` },
+              { icon: CalendarDays, label: "Booking ID", value: booking.bookingId },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-start gap-3">
                 <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
@@ -71,9 +83,9 @@ function BookingDetails() {
           <h2 className="text-lg font-bold text-gray-900 mb-5">Contact Details</h2>
           <div className="grid sm:grid-cols-2 gap-5 text-sm">
             {[
-              { icon: User, label: "Name", value: booking.name },
-              { icon: Mail, label: "Email", value: booking.email },
-              { icon: Phone, label: "Phone", value: booking.phone },
+              { icon: User, label: "Name", value: u.name },
+              { icon: Mail, label: "Email", value: u.email },
+              { icon: Phone, label: "Phone", value: u.phone || "—" },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-start gap-3">
                 <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
@@ -86,10 +98,10 @@ function BookingDetails() {
               </div>
             ))}
           </div>
-          {booking.notes && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-1">Special Requests</p>
-              <p className="text-sm text-gray-600">{booking.notes}</p>
+          {booking.totalAmount && (
+            <div className="mt-5 pt-5 border-t border-gray-100 flex justify-between text-sm">
+              <span className="text-gray-400">Total Amount</span>
+              <span className="font-bold text-gray-900">₹{booking.totalAmount}</span>
             </div>
           )}
         </div>
